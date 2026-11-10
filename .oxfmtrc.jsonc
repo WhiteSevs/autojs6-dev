@@ -1,0 +1,39 @@
+{
+  // oxfmt 配置 (JSONC, 允许注释)
+  // 用法: pnpm run format / pnpm run format:check
+  // 说明: oxfmt 只会自动读取 .oxfmtrc.json / .oxfmtrc.jsonc / oxfmt.config.ts,
+  //       文件名里的 `rc` 不能省略, 否则会提示 "No config found" 并回落到默认值.
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+
+  // 与仓库现有风格保持一致
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": false,
+  "quoteProps": "as-needed",
+  "trailingComma": "none",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "insertFinalNewline": true,
+
+  // package.json 的字段顺序是手写的, 不希望被重排
+  "sortPackageJson": false,
+  // 导入顺序保持原样 (按可读性分组, 不做字母序排序)
+  "sortImports": false,
+
+  // Rhino 产物、依赖目录不参与格式化
+  "ignorePatterns": ["**/dist/**", "**/node_modules/**", "pnpm-lock.yaml"],
+
+  "overrides": [
+    {
+      // JSON 不允许尾随逗号
+      "files": ["**/*.json", "**/*.jsonc"],
+      "options": {
+        "trailingComma": "none"
+      }
+    }
+  ]
+}

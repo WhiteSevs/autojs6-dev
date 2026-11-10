@@ -1,0 +1,25 @@
+{
+  // oxfmt 配置 (JSONC, 允许注释)
+  // 用法: npm run format / npm run format:check
+  // 说明: oxfmt 只认 .oxfmtrc.json / .oxfmtrc.jsonc / oxfmt.config.ts, 文件名里的 `rc` 不能省.
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": false,
+  "quoteProps": "as-needed",
+  "trailingComma": "none",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "insertFinalNewline": true,
+
+  // package.json 的字段顺序是手写的, 不希望被重排
+  "sortPackageJson": false,
+  "sortImports": false,
+
+  "ignorePatterns": ["dist", "node_modules"]
+}

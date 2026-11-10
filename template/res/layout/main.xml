@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AutoJs6 UI 模式示例布局 (相对路径基于脚本工作目录) -->
+<vertical bg="#FFFFFF" padding="24">
+
+    <text
+        id="title"
+        text="AutoJs6 + Vite"
+        textColor="#111827"
+        textSize="22sp"
+        textStyle="bold" />
+
+    <text
+        id="meta"
+        text="TypeScript · Vite · Rhino"
+        marginTop="6"
+        textColor="#6B7280"
+        textSize="13sp" />
+
+    <button
+        id="btnClose"
+        marginTop="28"
+        h="48dp"
+        text="关闭"
+        w="*" />
+
+</vertical>

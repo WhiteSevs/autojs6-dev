@@ -1,0 +1,27 @@
+{
+  "name": "autojs6-script",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AutoJs6 脚本项目 (autojs6-dev + Vite + TypeScript)",
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "dev:ui": "vite build --watch --mode development-ui",
+    "build": "vite build --mode production",
+    "build:ui": "vite build --mode production-ui",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run build"
+  },
+  "devDependencies": {
+    "@sm003/autojs6-dts": "^4.87.0",
+    "autojs6-dev": "file:..",
+    "oxfmt": "^0.77.0",
+    "oxlint": "^1.92.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.8"
+  }
+}

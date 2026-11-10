@@ -1,0 +1,39 @@
+{
+  // oxlint 配置 (JSONC, 允许注释)
+  // 用法: pnpm run lint / pnpm run lint:fix
+  // 说明: oxlint 只会自动读取 .oxlintrc.json / .oxlintrc.jsonc / oxlint.config.ts,
+  //       文件名里的 `rc` 不能省略, 否则配置不生效.
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+
+  // 设置 plugins 会覆盖默认插件集 (默认 typescript / unicorn / oxc), 这里列全需要用的
+  "plugins": ["typescript", "unicorn", "oxc", "node", "import", "promise"],
+
+  "categories": {
+    // 确实有问题的代码
+    "correctness": "error",
+    // 大概率有问题的代码
+    "suspicious": "warn",
+    // 性能相关的写法
+    "perf": "warn"
+  },
+
+  "rules": {
+    // 构建日志与 CLI 输出版本就要用 console
+    "no-console": "off",
+    // TypeScript 已经负责未定义变量与未使用变量的检查 (tsconfig: strict / noUnusedLocals)
+    "no-undef": "off",
+    "no-unused-vars": "off",
+    // 希望用显式类型, 但允许在过渡期先以 warning 提示
+    "typescript/no-explicit-any": "warn",
+    "eqeqeq": "warn",
+    // Node 内置模块统一带 node: 前缀
+    "unicorn/prefer-node-protocol": "warn"
+  },
+
+  "env": {
+    "node": true,
+    "es2024": true
+  },
+
+  "ignorePatterns": ["**/dist/**", "**/node_modules/**", "pnpm-lock.yaml"]
+}

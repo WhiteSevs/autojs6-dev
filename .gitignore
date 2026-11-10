@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.tmp/
+*.log
+.DS_Store
+.DS_Store?
+.workbuddy
+
+# 模板项目自身的依赖与产物 (由 pnpm install 生成)
+template/pnpm-lock.yaml
+template/pnpm-workspace.yaml

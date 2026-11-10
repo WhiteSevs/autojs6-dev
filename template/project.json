@@ -1,0 +1,15 @@
+{
+  "name": "AutoJs6 Script",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "packageName": "com.example.autojs6.script",
+  "main": "main.js",
+  "icon": "res/icon.png",
+  "useFeatures": [],
+  "launchConfig": {
+    "displaySplash": true,
+    "hideLogs": false,
+    "stableMode": false
+  },
+  "ignore": ["node_modules", "src", "types", ".git", ".vscode", "dist"]
+}

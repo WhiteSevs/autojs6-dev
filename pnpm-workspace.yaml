@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: false
+minimumReleaseAgeExclude:
+  - vite@7.3.8
+overrides:
+  autojs6-dev: 'link:'

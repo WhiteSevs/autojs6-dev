@@ -1,0 +1,67 @@
+{
+  "name": "autojs6-dev",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "AutoJs6 的 Vite 构建插件: TypeScript + ESM → 单文件脚本, 类型提示来自 @sm003/autojs6-dts",
+  "keywords": [
+    "autojs",
+    "autojs6",
+    "vite",
+    "vite-plugin",
+    "rhino",
+    "typescript"
+  ],
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin/index.d.ts",
+      "import": "./dist/plugin/index.js",
+      "require": "./dist/plugin/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/plugin/index.cjs",
+  "module": "./dist/plugin/index.js",
+  "types": "./dist/plugin/index.d.ts",
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE",
+    "template/**/*",
+    "!template/node_modules/**",
+    "!template/dist/**",
+    "!template/pnpm-lock.yaml",
+    "!template/pnpm-workspace.yaml"
+  ],
+  "bin": {
+    "autojs6-dev": "./bin/create.mjs"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run build",
+    "create": "node bin/create.mjs",
+    "prepublishOnly": "npm run check"
+  },
+  "dependencies": {
+    "@sm003/autojs6-dts": "^4.87.0"
+  },
+  "peerDependencies": {
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "oxfmt": "^0.77.0",
+    "oxlint": "^1.92.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.8"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

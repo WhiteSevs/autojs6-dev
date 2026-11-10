@@ -1,0 +1,76 @@
+{
+  // oxlint 配置 (JSONC, 允许注释)
+  // 用法: npm run lint / npm run lint:fix
+  // 说明: oxlint 只认 .oxlintrc.json / .oxlintrc.jsonc / oxlint.config.ts, 文件名里的 `rc` 不能省.
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+
+  // AutoJs6 的 Rhino 引擎按 ES2018 解析脚本 (构建 target 也是 es2018)
+  "env": {
+    "es2018": true
+  },
+
+  "plugins": ["typescript", "unicorn", "oxc"],
+
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+
+  "rules": {
+    // log / console 是脚本的主要输出方式
+    "no-console": "off",
+    // AutoJs6 的全局对象 (device / app / ocr / ui ...) 由 @sm003/autojs6-dts 提供类型,
+    // 未定义变量交给 tsc 检查, lint 不重复报一遍
+    "no-undef": "off",
+    "no-unused-vars": "off",
+    // `import path from 'path'` 会被插件转成 require("path"), 不能写成 node:path
+    "unicorn/prefer-node-protocol": "off",
+
+    // ---- 限制在 ES2018: 下面这些全局/API 都是 ES2019+, AutoJs6 上没有 ----
+    "no-restricted-globals": [
+      "error",
+      { "name": "globalThis", "message": "ES2020, AutoJs6 (Rhino) 没有 globalThis" },
+      { "name": "BigInt", "message": "ES2020, AutoJs6 (Rhino) 没有 BigInt" },
+      { "name": "WeakRef", "message": "ES2021, AutoJs6 (Rhino) 不支持" },
+      { "name": "FinalizationRegistry", "message": "ES2021, AutoJs6 (Rhino) 不支持" },
+      { "name": "AggregateError", "message": "ES2021, AutoJs6 (Rhino) 不支持" }
+    ],
+    "no-restricted-properties": [
+      "error",
+      { "property": "flat", "message": "Array.prototype.flat 是 ES2019" },
+      { "property": "flatMap", "message": "Array.prototype.flatMap 是 ES2019" },
+      {
+        "property": "trimStart",
+        "message": "String.prototype.trimStart 是 ES2019, 改用 replace(/^\\s+/, '')"
+      },
+      {
+        "property": "trimEnd",
+        "message": "String.prototype.trimEnd 是 ES2019, 改用 replace(/\\s+$/, '')"
+      },
+      { "property": "matchAll", "message": "String.prototype.matchAll 是 ES2020" },
+      {
+        "property": "replaceAll",
+        "message": "String.prototype.replaceAll 是 ES2021, 改用 replace(/g)"
+      },
+      { "property": "at", "message": "Array.prototype.at 是 ES2022, 改用 arr[arr.length - 1]" },
+      { "property": "findLast", "message": "Array.prototype.findLast 是 ES2023" },
+      { "property": "findLastIndex", "message": "Array.prototype.findLastIndex 是 ES2023" },
+      { "object": "Object", "property": "fromEntries", "message": "Object.fromEntries 是 ES2019" },
+      {
+        "object": "Object",
+        "property": "hasOwn",
+        "message": "Object.hasOwn 是 ES2022, 改用 Object.prototype.hasOwnProperty.call()"
+      },
+      { "object": "Object", "property": "groupBy", "message": "Object.groupBy 是 ES2024" },
+      { "object": "Promise", "property": "allSettled", "message": "Promise.allSettled 是 ES2020" },
+      { "object": "Promise", "property": "any", "message": "Promise.any 是 ES2021" },
+      {
+        "object": "Promise",
+        "property": "withResolvers",
+        "message": "Promise.withResolvers 是 ES2024"
+      }
+    ]
+  },
+
+  "ignorePatterns": ["dist", "node_modules"]
+}
