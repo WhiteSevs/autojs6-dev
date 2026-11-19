@@ -20,8 +20,8 @@ npm run dev        # 监听构建, 产物在 dist/
 ```ts
 autojs6({
   // ...
-  deploy: { enabled: true, command: 'save' } // 'run' 则保存后立即运行
-})
+  deploy: { enabled: true, command: "save" } // 'run' 则保存后立即运行
+});
 ```
 
 ## 脚本
@@ -44,18 +44,18 @@ autojs6({
 全局对象直接可用, 全程有类型提示 (Ctrl/⌘ + 点击可以跳到声明文件):
 
 ```ts
-log(`${device.brand} ${device.model}`)
-toast('已启动')
+log(`${device.brand} ${device.model}`);
+toast("已启动");
 
-const lines = ocr.recognizeText() // string[]
-const point = images.findColor(images.captureScreen(), '#FF0000')
-click(540, 1200)
+const lines = ocr.recognizeText(); // string[]
+const point = images.findColor(images.captureScreen(), "#FF0000");
+click(540, 1200);
 ```
 
 需要 Node 兼容模块时才 import, 且只支持默认导入:
 
 ```ts
-import path from 'path' // → require("path")
+import path from "path"; // → require("path")
 ```
 
 ## 目录结构
@@ -83,21 +83,21 @@ import path from 'path' // → require("path")
 格式化用 [oxfmt](https://oxc.rs/docs/guide/usage/formatter), 校验用 [oxlint](https://oxc.rs/docs/guide/usage/linter):
 
 ```bash
-npm run format        # 单引号 / 无分号 / 无尾随逗号 / 2 空格 / 100 列
+npm run format        # 双引号 / 分号 / 无尾随逗号 / 2 空格 / 100 列
 npm run lint          # 检查
 ```
 
 `.oxlintrc.jsonc` 把可用语法/API 限制在 **ES2018** (AutoJs6 的 Rhino 引擎只到这一档, 且构建不做 polyfill):
 
 ```ts
-arr.flat() // ✖ ES2019
-arr.flatMap((x) => x) // ✖ ES2019
-text.replaceAll('-', '+') // ✖ ES2021, 改用 replace(/-/g, '+')
-text.trimStart() // ✖ ES2019, 改用 replace(/^\s+/, '')
-Object.fromEntries(entries) // ✖ ES2019
-promise.allSettled(list) // ✖ ES2020
-globalThis.foo // ✖ ES2020, 直接用具体全局对象
-arr.at(-1) // ✖ ES2022, 改用 arr[arr.length - 1]
+arr.flat(); // ✖ ES2019
+arr.flatMap((x) => x); // ✖ ES2019
+text.replaceAll("-", "+"); // ✖ ES2021, 改用 replace(/-/g, '+')
+text.trimStart(); // ✖ ES2019, 改用 replace(/^\s+/, '')
+Object.fromEntries(entries); // ✖ ES2019
+promise.allSettled(list); // ✖ ES2020
+globalThis.foo; // ✖ ES2020, 直接用具体全局对象
+arr.at(-1); // ✖ ES2022, 改用 arr[arr.length - 1]
 ```
 
 `no-undef` 是关闭的: `device` / `app` / `ocr` 这些 AutoJs6 全局由声明文件提供类型, 未定义变量交给 `tsc` 检查.

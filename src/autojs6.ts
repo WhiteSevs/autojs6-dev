@@ -1,14 +1,14 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import type { Plugin, ResolvedConfig, UserConfig } from 'vite';
-import { DEFAULT_BUILTIN_MODULES, builtinModuleCode } from './builtin';
-import { createDeployer, resolveDeploy } from './deploy';
-import type { Deployer } from './deploy';
-import type { AutoJs6Options } from './options';
+import fs from "node:fs";
+import path from "node:path";
+import type { Plugin, ResolvedConfig, UserConfig } from "vite";
+import { DEFAULT_BUILTIN_MODULES, builtinModuleCode } from "./builtin";
+import { createDeployer, resolveDeploy } from "./deploy";
+import type { Deployer } from "./deploy";
+import type { AutoJs6Options } from "./options";
 
-const VIRTUAL_PREFIX = '\0autojs6:builtin:';
+const VIRTUAL_PREFIX = "\0autojs6:builtin:";
 
-const DEFAULT_ASSETS = ['project.json', 'res', 'images'];
+const DEFAULT_ASSETS = ["project.json", "res", "images"];
 
 /**
  * AutoJs6 + Vite 打包插件.
@@ -25,15 +25,15 @@ const DEFAULT_ASSETS = ['project.json', 'res', 'images'];
  */
 export function autojs6(options: AutoJs6Options = {}): Plugin {
   const {
-    entry = 'src/main.ts',
+    entry = "src/main.ts",
     uiEntry,
-    outDir = 'dist',
-    fileName = 'main.js',
+    outDir = "dist",
+    fileName = "main.js",
     uiMode = false,
     assets = DEFAULT_ASSETS,
     builtinModules = [],
-    target = 'es2018',
-    banner = '',
+    target = "es2018",
+    banner = "",
     define = {},
     strict = false,
     log = true,
@@ -48,13 +48,13 @@ export function autojs6(options: AutoJs6Options = {}): Plugin {
   let deployer: Deployer | null = null;
 
   return {
-    name: 'vite-plugin-autojs6',
+    name: "vite-plugin-autojs6",
     // 必须先于 vite:resolve 拦截内置模块名
-    enforce: 'pre',
+    enforce: "pre",
 
     config(userConfig, env): UserConfig {
       const root = path.resolve(userConfig.root ?? process.cwd());
-      isDev = !env.mode.startsWith('production');
+      isDev = !env.mode.startsWith("production");
 
       const useUiEntry = uiMode && !!uiEntry && fs.existsSync(path.resolve(root, uiEntry));
       entryFile = useUiEntry ? (uiEntry as string) : entry;
@@ -71,16 +71,16 @@ export function autojs6(options: AutoJs6Options = {}): Plugin {
           chunkSizeWarningLimit: 4096,
           lib: {
             entry: path.resolve(root, entryFile),
-            formats: ['cjs'],
+            formats: ["cjs"],
             fileName: () => fileName
           },
           rollupOptions: {
             output: {
-              format: 'cjs',
+              format: "cjs",
               entryFileNames: fileName,
               // 运行时没有 import() 能力, 动态导入必须内联
               inlineDynamicImports: true,
-              exports: 'auto',
+              exports: "auto",
               // 默认不写 "use strict": AutoJs6 脚本不需要它, 产物保持干净
               strict
             }
@@ -103,7 +103,7 @@ export function autojs6(options: AutoJs6Options = {}): Plugin {
       if (!fs.existsSync(file)) {
         this.error(
           `找不到入口脚本: ${path.relative(resolved.root, file)}\n` +
-            '  请检查 autojs6() 的 entry 选项.'
+            "  请检查 autojs6() 的 entry 选项."
         );
       }
     },
@@ -133,16 +133,16 @@ export function autojs6(options: AutoJs6Options = {}): Plugin {
       const prefix = buildBanner({ uiMode, banner });
 
       for (const chunk of Object.values(bundle)) {
-        if (chunk.type === 'chunk' && chunk.isEntry) {
+        if (chunk.type === "chunk" && chunk.isEntry) {
           if (prefix) {
-            chunk.code = prefix + '\n' + chunk.code;
+            chunk.code = prefix + "\n" + chunk.code;
           }
 
           // 用了 ui.layout* 却没开 UI 模式, 产物到手机上会直接抛异常, 提前提醒
           if (!uiMode && /\bui\.(layout|layoutFile)\s*\(/.test(chunk.code)) {
             resolved.logger.warn(
               '检测到 ui.layout* 调用, 但当前不是 UI 模式 (产物缺少首行 "ui";).\n' +
-                '  请用 npm run dev:ui / npm run build:ui 构建, 或在 autojs6() 里设置 uiMode: true.',
+                "  请用 npm run dev:ui / npm run build:ui 构建, 或在 autojs6() 里设置 uiMode: true.",
               { timestamp: true }
             );
           }
@@ -175,16 +175,16 @@ export function autojs6(options: AutoJs6Options = {}): Plugin {
       }
 
       const mainAsset = bundle[fileName];
-      const size = mainAsset && 'code' in mainAsset ? Buffer.byteLength(mainAsset.code) : 0;
+      const size = mainAsset && "code" in mainAsset ? Buffer.byteLength(mainAsset.code) : 0;
       const kb = (size / 1024).toFixed(1);
-      const tag = isDev ? 'dev' : 'build';
-      const ui = uiMode ? ' · UI 模式' : '';
+      const tag = isDev ? "dev" : "build";
+      const ui = uiMode ? " · UI 模式" : "";
 
       resolved.logger.info(
         `\x1b[36m[autojs6]\x1b[0m ${tag} 产物 → ` +
           `${path.relative(root, path.join(outDirAbs, fileName))} (${kb} kB)${ui}` +
-          (copied.length ? ` · 已同步 ${copied.join(', ')}` : '') +
-          (deployHint ? ` · ${deployHint}` : ''),
+          (copied.length ? ` · 已同步 ${copied.join(", ")}` : "") +
+          (deployHint ? ` · ${deployHint}` : ""),
         { timestamp: true }
       );
     }
@@ -203,7 +203,7 @@ function buildBanner(input: { uiMode: boolean; banner: string }) {
     lines.push(input.banner);
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 export default autojs6;

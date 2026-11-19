@@ -1,7 +1,7 @@
-import fs from 'node:fs';
-import http from 'node:http';
-import path from 'node:path';
-import type { DeployOptions } from './options';
+import fs from "node:fs";
+import http from "node:http";
+import path from "node:path";
+import type { DeployOptions } from "./options";
 
 /**
  * 通过 AutoJs6 VSCode 扩展把产物目录同步到手机.
@@ -17,11 +17,11 @@ export const DEFAULT_HTTP_PORT = 10347;
 
 /** 选项名 → 扩展命令名. 两者都在扩展的 HTTP 白名单里. */
 const COMMANDS = {
-  save: 'saveProject',
-  run: 'runProject'
+  save: "saveProject",
+  run: "runProject"
 } as const;
 
-const TAG = '\x1b[36m[autojs6]\x1b[0m';
+const TAG = "\x1b[36m[autojs6]\x1b[0m";
 
 /** 规范化后的同步配置. */
 export interface DeploySettings {
@@ -56,20 +56,20 @@ export function resolveDeploy(
   }
 
   return {
-    command: COMMANDS[options.command ?? 'save'],
-    host: options.host ?? '127.0.0.1',
+    command: COMMANDS[options.command ?? "save"],
+    host: options.host ?? "127.0.0.1",
     port: options.port ?? readExtensionPort(root) ?? DEFAULT_HTTP_PORT,
     timeout: options.timeout ?? 1500,
-    silent: options.onError === 'silent'
+    silent: options.onError === "silent"
   };
 }
 
-function matchMode(modes: DeployOptions['modes'], mode: string) {
-  if (!modes || modes === 'dev') {
+function matchMode(modes: DeployOptions["modes"], mode: string) {
+  if (!modes || modes === "dev") {
     // 与插件自身的开发模式判断保持一致: --mode development / development-ui
-    return mode.startsWith('development');
+    return mode.startsWith("development");
   }
-  return modes === 'all' || modes.includes(mode);
+  return modes === "all" || modes.includes(mode);
 }
 
 /**
@@ -78,7 +78,7 @@ function matchMode(modes: DeployOptions['modes'], mode: string) {
  */
 export function readExtensionPort(root: string): number | undefined {
   try {
-    const text = fs.readFileSync(path.join(root, '.vscode', 'settings.json'), 'utf8');
+    const text = fs.readFileSync(path.join(root, ".vscode", "settings.json"), "utf8");
     const matched = /"autojs6\.http\.port"\s*:\s*(\d+)/.exec(text);
     return matched ? Number(matched[1]) : undefined;
   } catch {
@@ -90,7 +90,7 @@ export function readExtensionPort(root: string): number | undefined {
 export function createDeployer(settings: DeploySettings, logger: DeployLogger): Deployer {
   const target = `${settings.host}:${settings.port}`;
   let inflight = false;
-  let lastError = '';
+  let lastError = "";
 
   function report(message: string) {
     if (settings.silent || message === lastError) {
@@ -103,10 +103,10 @@ export function createDeployer(settings: DeploySettings, logger: DeployLogger): 
   return {
     trigger(projectDir) {
       // 扩展靠 project.json 认定项目目录, 缺失时会直接报错, 这里提前说清楚
-      if (!fs.existsSync(path.join(projectDir, 'project.json'))) {
+      if (!fs.existsSync(path.join(projectDir, "project.json"))) {
         report(
-          '产物目录缺少 project.json, 已跳过同步到设备.\n' +
-            '  AutoJs6 依赖它识别项目, 请确认 assets 选项包含 project.json.'
+          "产物目录缺少 project.json, 已跳过同步到设备.\n" +
+            "  AutoJs6 依赖它识别项目, 请确认 assets 选项包含 project.json."
         );
         return null;
       }
@@ -120,7 +120,7 @@ export function createDeployer(settings: DeploySettings, logger: DeployLogger): 
         try {
           await sendProject(settings, projectDir);
           if (lastError) {
-            lastError = '';
+            lastError = "";
             logger.info(`${TAG} 已恢复与 VSCode 扩展的连接 (${target})`);
           }
         } catch (error) {
@@ -144,34 +144,34 @@ function sendProject(settings: DeploySettings, projectDir: string): Promise<void
         host: settings.host,
         port: settings.port,
         path: `/exec?${query}`,
-        method: 'GET',
+        method: "GET",
         agent: false,
         timeout: settings.timeout
       },
       (response) => {
         // 响应体只有一行文本, 没有结果语义, 读完即可
         response.resume();
-        response.on('end', () => resolve());
+        response.on("end", () => resolve());
       }
     );
 
-    request.on('timeout', () => {
+    request.on("timeout", () => {
       request.destroy(new Error(`timeout after ${settings.timeout}ms`));
     });
-    request.on('error', reject);
+    request.on("error", reject);
     request.end();
   });
 }
 
 function describeError(error: NodeJS.ErrnoException, settings: DeploySettings, target: string) {
-  if (error.code === 'ECONNREFUSED') {
+  if (error.code === "ECONNREFUSED") {
     return (
       `无法连接 VSCode 扩展的 HTTP 命令桥 (${target}): 端口无人监听.\n` +
-      '  请确认 VSCode 已打开且 AutoJs6 扩展已连接设备;\n' +
-      '  不需要自动同步时把 deploy 设为 false (或删掉 deploy 选项).'
+      "  请确认 VSCode 已打开且 AutoJs6 扩展已连接设备;\n" +
+      "  不需要自动同步时把 deploy 设为 false (或删掉 deploy 选项)."
     );
   }
-  if (error.code === 'ETIMEDOUT' || /timeout/i.test(error.message ?? '')) {
+  if (error.code === "ETIMEDOUT" || /timeout/i.test(error.message ?? "")) {
     return `VSCode 扩展响应超时 (${target}, ${settings.timeout}ms), 本次同步可能未完成.`;
   }
   return `同步到设备失败 (${target}): ${error.message || String(error)}`;

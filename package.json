@@ -38,7 +38,7 @@
     "autojs6-dev": "./bin/create.mjs"
   },
   "scripts": {
-    "build": "node scripts/build.mjs",
+    "build": "oxfmt && node scripts/build.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",

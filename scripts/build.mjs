@@ -7,15 +7,15 @@
  *   dist/plugin/index.cjs   插件 (CJS, 兼容老配置)
  *   dist/plugin/*.d.ts      类型声明
  */
-import fs from 'node:fs';
-import path from 'node:path';
-import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-import { build } from 'vite';
+import fs from "node:fs";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { build } from "vite";
 
-const ROOT = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
-const DIST = path.join(ROOT, 'dist');
-const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
+const DIST = path.join(ROOT, "dist");
+const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
 
 /** 让 `import ... from 'autojs6-dev'` 顺带带上 AutoJs6 的全局类型提示 */
 const REFERENCE = '/// <reference types="@sm003/autojs6-dts" />';
@@ -26,12 +26,33 @@ main().catch((error) => {
 });
 
 async function main() {
-  fs.rmSync(DIST, { recursive: true, force: true });
+  cleanDir(DIST);
   fs.mkdirSync(DIST, { recursive: true });
 
   await buildPlugin();
   emitTypes();
   report();
+}
+
+/**
+ * 清空目录内容.
+ *
+ * 不用 `fs.rmSync(dir, { recursive: true })`: 部分环境会把目录级删除转到回收站,
+ * 一旦失败整个构建就中断. 逐文件删除在任何环境下都能工作.
+ */
+function cleanDir(dir) {
+  if (!fs.existsSync(dir)) {
+    return;
+  }
+  for (const name of fs.readdirSync(dir)) {
+    const full = path.join(dir, name);
+    if (fs.lstatSync(full).isDirectory()) {
+      cleanDir(full);
+      fs.rmdirSync(full);
+    } else {
+      fs.unlinkSync(full);
+    }
+  }
 }
 
 /** 插件: Node 侧代码, 同时产出 ESM 与 CJS, 依赖全部外置 */
@@ -40,22 +61,23 @@ async function buildPlugin() {
     configFile: false,
     root: ROOT,
     publicDir: false,
-    logLevel: 'warn',
+    logLevel: "warn",
     build: {
-      outDir: 'dist/plugin',
-      emptyOutDir: true,
+      outDir: "dist/plugin",
+      // 目录已由 cleanDir 清空, 这里不再让 vite 递归删除一遍
+      emptyOutDir: false,
       copyPublicDir: false,
-      target: 'node18',
+      target: "node18",
       minify: false,
       sourcemap: false,
       lib: {
-        entry: path.join(ROOT, 'src/index.ts'),
-        formats: ['es', 'cjs'],
-        fileName: (format) => (format === 'es' ? 'index.js' : 'index.cjs')
+        entry: path.join(ROOT, "src/index.ts"),
+        formats: ["es", "cjs"],
+        fileName: (format) => (format === "es" ? "index.js" : "index.cjs")
       },
       rollupOptions: {
-        external: ['vite', /^node:/],
-        output: { exports: 'named' }
+        external: ["vite", /^node:/],
+        output: { exports: "named" }
       }
     }
   });
@@ -63,34 +85,34 @@ async function buildPlugin() {
 
 /** 用 tsc 生成类型声明 (esbuild/vite 不做这件事) */
 function emitTypes() {
-  const tsc = path.join(ROOT, 'node_modules/typescript/bin/tsc');
+  const tsc = path.join(ROOT, "node_modules/typescript/bin/tsc");
 
   try {
-    execFileSync(process.execPath, [tsc, '-p', 'tsconfig.build.json'], {
+    execFileSync(process.execPath, [tsc, "-p", "tsconfig.build.json"], {
       cwd: ROOT,
-      stdio: 'inherit'
+      stdio: "inherit"
     });
   } catch (error) {
-    throw new Error(`类型声明生成失败${error instanceof Error ? `: ${error.message}` : ''}`, {
+    throw new Error(`类型声明生成失败${error instanceof Error ? `: ${error.message}` : ""}`, {
       cause: error
     });
   }
 
-  ensureReference(path.join(DIST, 'plugin/index.d.ts'));
+  ensureReference(path.join(DIST, "plugin/index.d.ts"));
 }
 
 function ensureReference(file) {
-  const text = fs.readFileSync(file, 'utf8');
+  const text = fs.readFileSync(file, "utf8");
   if (text.includes('/// <reference types="@sm003/autojs6-dts" />')) {
     return;
   }
-  fs.writeFileSync(file, `${REFERENCE}\n${text}`, 'utf8');
+  fs.writeFileSync(file, `${REFERENCE}\n${text}`, "utf8");
 }
 
 function report() {
   console.log(`\n\x1b[36m[autojs6-dev]\x1b[0m v${pkg.version} 构建完成`);
 
-  for (const file of ['plugin/index.js', 'plugin/index.cjs']) {
+  for (const file of ["plugin/index.js", "plugin/index.cjs"]) {
     const full = path.join(DIST, file);
     if (!fs.existsSync(full)) {
       continue;
@@ -98,5 +120,5 @@ function report() {
     const size = fs.statSync(full).size;
     console.log(`  ${file.padEnd(20)} ${(size / 1024).toFixed(1)} kB`);
   }
-  console.log('');
+  console.log("");
 }

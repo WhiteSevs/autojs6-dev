@@ -18,16 +18,16 @@ npm i -D autojs6-dev vite typescript
 **1. `vite.config.ts`**
 
 ```ts
-import { defineConfig } from 'vite';
-import { autojs6 } from 'autojs6-dev';
+import { defineConfig } from "vite";
+import { autojs6 } from "autojs6-dev";
 
 export default defineConfig(({ mode }) => ({
-  appType: 'custom',
+  appType: "custom",
   plugins: [
     autojs6({
-      entry: 'src/main.ts',
-      uiEntry: 'src/main.ui.ts', // UI 模式 (--mode *-ui) 使用的入口
-      uiMode: mode.includes('ui')
+      entry: "src/main.ts",
+      uiEntry: "src/main.ui.ts", // UI 模式 (--mode *-ui) 使用的入口
+      uiMode: mode.includes("ui")
     })
   ]
 }));
@@ -59,10 +59,10 @@ async function main() {
   log(`${device.brand} ${device.model}`); // 设备信息, 全程有提示
   log(`Android ${device.release} (API ${device.sdkInt})`);
 
-  toast('开始运行');
+  toast("开始运行");
 
   const lines = ocr.recognizeText(); // 截屏 + 文字识别, 返回 string[]
-  log(lines.join('\n'));
+  log(lines.join("\n"));
 }
 
 main();
@@ -96,7 +96,7 @@ const shot = images.captureScreen(); // ImageWrapper
 const result = ocr.detect(shot); // Ocr.Result[]
 result.forEach((item) => log(item.text, item.bounds));
 
-app.launch('com.tencent.mm'); // App.PackageName
+app.launch("com.tencent.mm"); // App.PackageName
 sleep(500);
 ```
 
@@ -106,8 +106,8 @@ sleep(500);
 interface TextViewLike {
   setText(text: string): void;
 }
-const title = ui.findView('title') as unknown as TextViewLike;
-title.setText('Hello');
+const title = ui.findView("title") as unknown as TextViewLike;
+title.setText("Hello");
 ```
 
 想用第三方 npm 包 (如 `dayjs` / `axios`) 照常 `import` 即可, 构建时会被内联进单文件.
@@ -118,17 +118,17 @@ title.setText('Hello');
 
 ```ts
 autojs6({
-  entry: 'src/main.ts', // 入口脚本 (相对项目根)
-  uiEntry: 'src/main.ui.ts', // UI 模式入口, 仅 uiMode 为 true 时生效
+  entry: "src/main.ts", // 入口脚本 (相对项目根)
+  uiEntry: "src/main.ui.ts", // UI 模式入口, 仅 uiMode 为 true 时生效
   uiMode: false, // 产物首行写入 "ui";
-  outDir: 'dist', // 产物目录
-  fileName: 'main.js', // 产物文件名
-  assets: ['project.json', 'res', 'images'], // 同步到产物的资源, 传 false 关闭
+  outDir: "dist", // 产物目录
+  fileName: "main.js", // 产物文件名
+  assets: ["project.json", "res", "images"], // 同步到产物的资源, 传 false 关闭
   builtinModules: [], // 追加视为 AutoJs6 内置模块的包名
-  target: 'es2018', // 编译目标 (Rhino 的安全线)
+  target: "es2018", // 编译目标 (Rhino 的安全线)
   minify: undefined, // 默认: 生产模式 true, 开发模式 false
   sourcemap: false,
-  banner: '', // 自定义头部注释, 默认不写
+  banner: "", // 自定义头部注释, 默认不写
   strict: false, // 是否写入 "use strict";, 默认不写
   define: {}, // 追加编译期常量
   log: true, // 构建结束打印产物信息
@@ -173,7 +173,7 @@ AutoJs6 的模块加载器是 CommonJS 风格, `.mjs` 也不会启用原生 ESM 
 `import path from 'path'` / `import ui from 'ui'` 这类写法如果直接交给打包器, 会报「找不到依赖」或被打成浏览器桩代码. 插件把它们替换成虚拟模块:
 
 ```js
-var mod = typeof ui !== 'undefined' ? ui : require('ui');
+var mod = typeof ui !== "undefined" ? ui : require("ui");
 export default mod;
 ```
 
@@ -187,11 +187,11 @@ AutoJs6 要求 `"ui";` 是脚本的**第一个有效语句**. 插件在 `generat
 
 ```js
 // 普通脚本
-log('hi');
+log("hi");
 
 // UI 模式
-('ui');
-log('hi');
+("ui");
+log("hi");
 ```
 
 所以**不要在源码里手写 `"ui";`**. 反向检查也做了: 代码里用了 `ui.layout*` 却没开 UI 模式时, 构建会给出警告.
@@ -252,7 +252,7 @@ my-app/
 
 ```ts
 arr.flat(); // ✖ ES2019
-text.replaceAll('-', '+'); // ✖ ES2021 → replace(/-/g, '+')
+text.replaceAll("-", "+"); // ✖ ES2021 → replace(/-/g, '+')
 Object.fromEntries(entries); // ✖ ES2019
 globalThis.foo; // ✖ ES2020
 arr.at(-1); // ✖ ES2022 → arr[arr.length - 1]
@@ -287,12 +287,12 @@ dist/
 
 ```ts
 autojs6({
-  outDir: 'dist',
+  outDir: "dist",
   deploy: {
     enabled: true,
-    command: 'save' // 'run' 则保存后立即在手机上运行
+    command: "save" // 'run' 则保存后立即在手机上运行
   }
-})
+});
 ```
 
 原理是扩展会开一个本机 HTTP 命令桥, 插件只是发一个请求:
@@ -303,12 +303,12 @@ GET http://127.0.0.1:10347/exec?cmd=saveProject&path=<产物目录的绝对路�
 
 所以要求:
 
-| 条件 | 说明 |
-| ---- | ---- |
-| VSCode 正在运行 | 命令桥由扩展进程提供, 扩展随 VSCode 启动激活 (`onStartupFinished`) |
-| 已连接设备 | 扩展侧至少要有一台已连接的 AutoJs6 设备, 否则只能收到错误提示 |
-| AutoJs6-VSCode-Extension ≥ 1.0.13 | 该版本起 HTTP 白名单包含 `saveProject` / `runProject` |
-| AutoJs6 ≥ 6.8.0 | 增量同步、删除文件 (`override` / `deletedFiles`) 依赖该版本 |
+| 条件                              | 说明                                                               |
+| --------------------------------- | ------------------------------------------------------------------ |
+| VSCode 正在运行                   | 命令桥由扩展进程提供, 扩展随 VSCode 启动激活 (`onStartupFinished`) |
+| 已连接设备                        | 扩展侧至少要有一台已连接的 AutoJs6 设备, 否则只能收到错误提示      |
+| AutoJs6-VSCode-Extension ≥ 1.0.13 | 该版本起 HTTP 白名单包含 `saveProject` / `runProject`              |
+| AutoJs6 ≥ 6.8.0                   | 增量同步、删除文件 (`override` / `deletedFiles`) 依赖该版本        |
 
 几个行为要点:
 
@@ -323,7 +323,6 @@ GET http://127.0.0.1:10347/exec?cmd=saveProject&path=<产物目录的绝对路�
   想让手机上叫 `hello` 就把 `outDir` 设成 `hello`.
 - **强制全量覆盖做不到**: 扩展的「重新完整同步项目」需要人工确认, 也没有开放给 HTTP 命令桥,
   需要时手动在 VSCode 里执行一次.
-
 
 ---
 
@@ -358,10 +357,10 @@ E4X 只有 Rhino 能解析, TypeScript / esbuild 会直接报语法错误. 布�
 
 ```bash
 pnpm install
-pnpm run build        # 产出 dist/plugin (插件 + 类型)
+pnpm run build        # 先 oxfmt 格式化, 再产出 dist/plugin (插件 + 类型)
 pnpm run typecheck
 pnpm run lint         # oxlint
-pnpm run format       # oxfmt
+pnpm run format       # 只格式化, 不构建
 
 # 端到端验证: 模板项目通过 file:.. 引用本包
 cd template && npm install && npm run build
@@ -369,17 +368,18 @@ cd template && npm install && npm run build
 
 > 用 pnpm 在 `template/` 里安装时可能提示 `Ignored build scripts: esbuild`, 不影响构建.
 
-| 命令                               | 作用                              |
-| ---------------------------------- | --------------------------------- |
-| `pnpm run lint` / `lint:fix`       | oxlint 校验 (自动修复)            |
-| `pnpm run format` / `format:check` | oxfmt 格式化 (只检查不写入)       |
-| `pnpm run check`                   | 类型检查 + lint + 格式检查 + 构建 |
+| 命令                               | 作用                                     |
+| ---------------------------------- | ---------------------------------------- |
+| `pnpm run build`                   | oxfmt 格式化 + 构建 (产出 `dist/plugin`) |
+| `pnpm run lint` / `lint:fix`       | oxlint 校验 (自动修复)                   |
+| `pnpm run format` / `format:check` | oxfmt 格式化 / 只检查不写入              |
+| `pnpm run check`                   | 类型检查 + lint + 格式检查 + 构建        |
 
 代码风格由两份配置固定下来 —— 根目录一份 (插件源码), `template/` 目录一份 (随脚手架一起发布给使用方):
 
 | 文件                       | 工具                                               | 说明                                                            |
 | -------------------------- | -------------------------------------------------- | --------------------------------------------------------------- |
-| `.oxfmtrc.jsonc`           | [oxfmt](https://oxc.rs/docs/guide/usage/formatter) | 单引号 / 无分号 / 无尾随逗号 / 2 空格 / 100 列 / LF             |
+| `.oxfmtrc.jsonc`           | [oxfmt](https://oxc.rs/docs/guide/usage/formatter) | 双引号 / 分号 / 无尾随逗号 / 2 空格 / 100 列 / LF               |
 | `.oxlintrc.jsonc`          | [oxlint](https://oxc.rs/docs/guide/usage/linter)   | correctness=error, suspicious/perf=warn, TS 项目关闭 `no-undef` |
 | `template/.oxfmtrc.jsonc`  | oxfmt                                              | 同上 (生成的项目可独立使用)                                     |
 | `template/.oxlintrc.jsonc` | oxlint                                             | 同上 + 限制到 ES2018 的规则集                                   |

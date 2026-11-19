@@ -62,7 +62,7 @@ export interface DeployOptions {
   /** 是否启用. 默认 `false` */
   enabled?: boolean;
   /** 扩展侧命令: `save` 只保存项目, `run` 保存后立即运行. 默认 `save` */
-  command?: 'save' | 'run';
+  command?: "save" | "run";
   /** 扩展 HTTP 命令桥的地址. 默认 `127.0.0.1` */
   host?: string;
   /**
@@ -74,9 +74,9 @@ export interface DeployOptions {
    * 触发同步的构建模式. 默认 `dev` (即 `--mode development*`);
    * 传 `all` 不限制, 或传模式名数组精确匹配.
    */
-  modes?: 'dev' | 'all' | string[];
+  modes?: "dev" | "all" | string[];
   /** 请求超时 (毫秒). 默认 `1500` */
   timeout?: number;
   /** 连接扩展失败时的行为: `warn` 打印一次警告 (默认), `silent` 完全静默 */
-  onError?: 'warn' | 'silent';
+  onError?: "warn" | "silent";
 }

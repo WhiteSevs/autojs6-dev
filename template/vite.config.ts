@@ -1,6 +1,6 @@
-import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
-import { autojs6 } from 'autojs6-dev'
+import { fileURLToPath, URL } from "node:url";
+import { defineConfig } from "vite";
+import { autojs6 } from "autojs6-dev";
 
 /**
  * 通过 `--mode` 控制产物形态:
@@ -8,29 +8,29 @@ import { autojs6 } from 'autojs6-dev'
  *   development-ui / production-ui  UI 模式脚本 (产物首行写入 `"ui";`)
  */
 export default defineConfig(({ mode }) => {
-  const uiMode = mode.includes('ui')
+  const uiMode = mode.includes("ui");
 
   return {
     // 产物是单文件脚本, 不需要浏览器相关的配置
-    appType: 'custom' as const,
+    appType: "custom" as const,
     resolve: {
       alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url))
+        "@": fileURLToPath(new URL("./src", import.meta.url))
       }
     },
     plugins: [
       autojs6({
-        entry: 'src/main.ts',
+        entry: "src/main.ts",
         // UI 模式下改用这个入口
-        uiEntry: 'src/main.ui.ts',
+        uiEntry: "src/main.ui.ts",
         uiMode,
-        outDir: 'dist',
-        fileName: 'main.js',
+        outDir: "dist",
+        fileName: "main.js",
         // 随脚本一起部署到 AutoJs6 的静态资源
-        assets: ['project.json', 'res', 'images'],
+        assets: ["project.json", "res", "images"],
         // 构建结束自动把 dist 推到手机 (调用 VSCode 里的 AutoJs6 扩展):
-        deploy: { enabled: true, command: 'save', modes: 'all' }
+        deploy: { enabled: true, command: "save", modes: "all" }
       })
     ]
-  }
-})
+  };
+});
