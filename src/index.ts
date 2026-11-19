@@ -9,4 +9,4 @@
 export { autojs6 } from './autojs6';
 export { autojs6 as default } from './autojs6';
 export { DEFAULT_BUILTIN_MODULES } from './builtin';
-export type { AutoJs6Options } from './options';
+export type { AutoJs6Options, DeployOptions } from './options';

@@ -15,6 +15,15 @@ npm run dev        # 监听构建, 产物在 dist/
 
 把 **`dist` 目录**部署到手机上 (VSCode + AutoJs6 扩展 / adb push / 文件管理器), 即可运行.
 
+想省掉手动那一步? 在 `vite.config.ts` 里打开 `deploy`, 每次构建结束由 VSCode 的 AutoJs6 扩展自动推送:
+
+```ts
+autojs6({
+  // ...
+  deploy: { enabled: true, command: 'save' } // 'run' 则保存后立即运行
+})
+```
+
 ## 脚本
 
 | 命令                   | 作用                                               |

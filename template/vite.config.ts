@@ -27,7 +27,9 @@ export default defineConfig(({ mode }) => {
         outDir: 'dist',
         fileName: 'main.js',
         // 随脚本一起部署到 AutoJs6 的静态资源
-        assets: ['project.json', 'res', 'images']
+        assets: ['project.json', 'res', 'images'],
+        // 构建结束自动把 dist 推到手机 (调用 VSCode 里的 AutoJs6 扩展):
+        deploy: { enabled: true, command: 'save', modes: 'all' }
       })
     ]
   }

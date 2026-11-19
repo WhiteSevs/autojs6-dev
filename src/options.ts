@@ -42,4 +42,41 @@ export interface AutoJs6Options {
   define?: Record<string, string>;
   /** 构建结束后是否打印产物信息. 默认 `true` */
   log?: boolean;
+  /**
+   * 构建结束后把产物目录同步到手机 (调用 AutoJs6 VSCode 扩展).
+   *
+   * 走扩展的本机 HTTP 命令桥 (`/exec?cmd=saveProject&path=...`), 不需要 adb;
+   * 要求 VSCode 正在运行、AutoJs6 扩展已激活且至少有一台设备已连接.
+   * 传 `false` 等价于关闭, 也是默认行为.
+   */
+  deploy?: DeployOptions | false;
+}
+
+/**
+ * 自动同步到设备的配置. 由 `autojs6()` 的 `deploy` 选项使用.
+ *
+ * 依赖 AutoJs6-VSCode-Extension (≥ 1.0.13) 的 HTTP 命令桥, 需要 AutoJs6 ≥ 6.8.0
+ * 才有增量同步与删除文件的语义.
+ */
+export interface DeployOptions {
+  /** 是否启用. 默认 `false` */
+  enabled?: boolean;
+  /** 扩展侧命令: `save` 只保存项目, `run` 保存后立即运行. 默认 `save` */
+  command?: 'save' | 'run';
+  /** 扩展 HTTP 命令桥的地址. 默认 `127.0.0.1` */
+  host?: string;
+  /**
+   * 命令桥端口. 未设置时读取工作区 `.vscode/settings.json` 的 `autojs6.http.port`,
+   * 仍取不到则用扩展的默认值 `10347`.
+   */
+  port?: number;
+  /**
+   * 触发同步的构建模式. 默认 `dev` (即 `--mode development*`);
+   * 传 `all` 不限制, 或传模式名数组精确匹配.
+   */
+  modes?: 'dev' | 'all' | string[];
+  /** 请求超时 (毫秒). 默认 `1500` */
+  timeout?: number;
+  /** 连接扩展失败时的行为: `warn` 打印一次警告 (默认), `silent` 完全静默 */
+  onError?: 'warn' | 'silent';
 }

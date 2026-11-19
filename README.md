@@ -131,11 +131,26 @@ autojs6({
   banner: '', // 自定义头部注释, 默认不写
   strict: false, // 是否写入 "use strict";, 默认不写
   define: {}, // 追加编译期常量
-  log: true // 构建结束打印产物信息
+  log: true, // 构建结束打印产物信息
+  deploy: false // 构建后调用 AutoJs6 VSCode 扩展同步到手机, 默认关闭
 });
 ```
 
 产物头部保持干净: 默认没有任何注释, 也不会写 `"use strict";` —— 第一行就是代码; UI 模式下第一行是 `"ui";`.
+
+`deploy` 的完整选项 (见 [自动同步到设备](#自动同步到设备)):
+
+```ts
+deploy: {
+  enabled: true, // 总开关, 默认 false
+  command: 'save', // 'save' 只保存项目 | 'run' 保存后立即运行
+  host: '127.0.0.1', // 扩展 HTTP 命令桥地址
+  port: 10347, // 默认读 .vscode/settings.json 的 autojs6.http.port, 再退回 10347
+  modes: 'dev', // 'dev' (默认, --mode development*) | 'all' | ['production']
+  timeout: 1500, // 请求超时 (ms)
+  onError: 'warn' // 'warn' 只警告一次 | 'silent' 完全静默
+}
+```
 
 ---
 
@@ -184,6 +199,12 @@ log('hi');
 **4. 同步静态资源**
 
 `project.json` / `res/` / `images/` 会原样拷贝到产物目录, watch 重建也会重新同步.
+拷贝时保留源文件的时间戳 —— 产物目录交给 AutoJs6 扩展做增量同步时, 它按 mtime 判断哪些文件变了.
+
+**5. (可选) 同步到设备**
+
+打开 `deploy` 后, 产物和资源落盘完成, 插件才去请求扩展的 HTTP 命令桥, 让扩展把 `dist` 推到手机.
+细节与前置条件见 [自动同步到设备](#自动同步到设备).
 
 ---
 
@@ -254,9 +275,55 @@ dist/
 
 三种常见方式:
 
-1. **VSCode + AutoJs6 扩展** (推荐): 把 `dist` 作为项目目录打开, 保存即同步到手机.
+1. **VSCode + AutoJs6 扩展** (推荐): 把 `dist` 作为项目目录打开, 保存即同步到手机; 或直接开启 `deploy` 让构建自动推送 (见下).
 2. **adb**: `adb push dist/. /sdcard/脚本/hello/`
 3. **文件管理器 / 微信传输**: 整体拷到手机存储目录.
+
+### 自动同步到设备
+
+打开 `deploy` 后, 每次构建结束 (产物与资源都落盘之后) 插件会调用
+[AutoJs6-VSCode-Extension](https://github.com/SuperMonster003/AutoJs6-VSCode-Extension)
+的「保存项目到设备」, 由扩展把 `dist` 增量推送过去, 不需要 adb:
+
+```ts
+autojs6({
+  outDir: 'dist',
+  deploy: {
+    enabled: true,
+    command: 'save' // 'run' 则保存后立即在手机上运行
+  }
+})
+```
+
+原理是扩展会开一个本机 HTTP 命令桥, 插件只是发一个请求:
+
+```
+GET http://127.0.0.1:10347/exec?cmd=saveProject&path=<产物目录的绝对路径>
+```
+
+所以要求:
+
+| 条件 | 说明 |
+| ---- | ---- |
+| VSCode 正在运行 | 命令桥由扩展进程提供, 扩展随 VSCode 启动激活 (`onStartupFinished`) |
+| 已连接设备 | 扩展侧至少要有一台已连接的 AutoJs6 设备, 否则只能收到错误提示 |
+| AutoJs6-VSCode-Extension ≥ 1.0.13 | 该版本起 HTTP 白名单包含 `saveProject` / `runProject` |
+| AutoJs6 ≥ 6.8.0 | 增量同步、删除文件 (`override` / `deletedFiles`) 依赖该版本 |
+
+几个行为要点:
+
+- **请求是发完即返回的**, 响应体只有一行文本, 构建侧拿不到「同步成功」的结果.
+  因此插件只在日志里写「已请求同步到设备」; 真正的失败 (比如没连设备) 会以 VSCode 通知形式出现.
+  扩展不可用时只警告一次 (`onError: 'silent'` 可关掉), 不打断构建.
+- **默认只在开发模式触发** (`--mode development*`), 生产构建不推送;
+  需要时把 `modes` 设为 `'all'` 或具体模式名数组.
+- **增量按文件 mtime 判断**, 插件拷贝资源时保留了源文件时间戳, 未改动的 `res/` 不会重复上传.
+  VSCode 重启后扩展的基线会重置, 那一轮是全量上传, 属正常现象.
+- **手机上的项目目录名就是 `outDir` 的名字** (扩展用目录名作为项目名).
+  想让手机上叫 `hello` 就把 `outDir` 设成 `hello`.
+- **强制全量覆盖做不到**: 扩展的「重新完整同步项目」需要人工确认, 也没有开放给 HTTP 命令桥,
+  需要时手动在 VSCode 里执行一次.
+
 
 ---
 
@@ -279,6 +346,11 @@ E4X 只有 Rhino 能解析, TypeScript / esbuild 会直接报语法错误. 布�
 
 **想引入本地文本资源 (布局 XML 等)?**
 用 `?raw` 后缀, 得到字符串: `import xml from '../res/layout/main.xml?raw'`.
+
+**构建后提示「无法连接 VSCode 扩展的 HTTP 命令桥」?**
+说明 `deploy` 打开了但没有可用的扩展命令桥. 依次检查: VSCode 是否打开、AutoJs6 扩展是否装好并激活、
+`autojs6.http.enabled` 是否为 `true`、端口是否被改过 (改过就同步调整 `deploy.port` 或写进 `.vscode/settings.json`).
+不需要这个功能时, 把 `deploy` 去掉或设成 `false` 即可.
 
 ---
 
@@ -322,6 +394,7 @@ src/
 ├── index.ts        # 包入口 (导出插件)
 ├── autojs6.ts      # 插件实现
 ├── builtin.ts      # AutoJs6 内置模块名单
+├── deploy.ts       # 构建后通过 VSCode 扩展同步到设备
 └── options.ts      # 插件选项类型
 scripts/build.mjs   # ESM + CJS 双格式打包 + 类型声明
 bin/create.mjs      # 脚手架 CLI

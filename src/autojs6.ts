@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { Plugin, ResolvedConfig, UserConfig } from 'vite';
 import { DEFAULT_BUILTIN_MODULES, builtinModuleCode } from './builtin';
+import { createDeployer, resolveDeploy } from './deploy';
+import type { Deployer } from './deploy';
 import type { AutoJs6Options } from './options';
 
 const VIRTUAL_PREFIX = '\0autojs6:builtin:';
@@ -15,7 +17,8 @@ const DEFAULT_ASSETS = ['project.json', 'res', 'images'];
  * 1. 把构建配置改成「单文件 CJS 产物」, 让 Rhino 能直接执行;
  * 2. 拦截 AutoJs6 内置模块的 import, 避免被打包器判为缺少依赖;
  * 3. 注入 `"ui";` 指令与编译期常量;
- * 4. 把 `project.json` / `res` / `images` 等静态资源拷贝到产物目录.
+ * 4. 把 `project.json` / `res` / `images` 等静态资源拷贝到产物目录;
+ * 5. (可选) 构建结束后调用 AutoJs6 VSCode 扩展, 把产物同步到手机.
  *
  * 脚本里的 API 全部来自 AutoJs6 运行时本身 (`device` / `ocr` / `images` ...),
  * 类型提示由官方声明文件 `@sm003/autojs6-dts` 提供, 插件不额外封装 API.
@@ -33,7 +36,8 @@ export function autojs6(options: AutoJs6Options = {}): Plugin {
     banner = '',
     define = {},
     strict = false,
-    log = true
+    log = true,
+    deploy
   } = options;
 
   const builtinSet = new Set<string>([...DEFAULT_BUILTIN_MODULES, ...builtinModules]);
@@ -41,6 +45,7 @@ export function autojs6(options: AutoJs6Options = {}): Plugin {
   let resolved: ResolvedConfig;
   let isDev = false;
   let entryFile = entry;
+  let deployer: Deployer | null = null;
 
   return {
     name: 'vite-plugin-autojs6',
@@ -89,6 +94,8 @@ export function autojs6(options: AutoJs6Options = {}): Plugin {
 
     configResolved(config) {
       resolved = config;
+      const settings = resolveDeploy(deploy, config.root, config.mode);
+      deployer = settings ? createDeployer(settings, config.logger) : null;
     },
 
     buildStart() {
@@ -155,9 +162,13 @@ export function autojs6(options: AutoJs6Options = {}): Plugin {
         // 防止把产物目录自身再拷贝进去
         if (to === from || from.startsWith(outDirAbs + path.sep)) continue;
         if (!fs.existsSync(from)) continue;
-        fs.cpSync(from, to, { recursive: true, dereference: true });
+        // 保留源文件的 mtime: 扩展按 mtime 判断项目增量, 否则每次构建都会重传一遍资源
+        fs.cpSync(from, to, { recursive: true, dereference: true, preserveTimestamps: true });
         copied.push(asset);
       }
+
+      // 产物已经完整落盘, 此时再请求扩展同步
+      const deployHint = deployer?.trigger(outDirAbs) ?? null;
 
       if (!log) {
         return;
@@ -172,7 +183,8 @@ export function autojs6(options: AutoJs6Options = {}): Plugin {
       resolved.logger.info(
         `\x1b[36m[autojs6]\x1b[0m ${tag} 产物 → ` +
           `${path.relative(root, path.join(outDirAbs, fileName))} (${kb} kB)${ui}` +
-          (copied.length ? ` · 已同步 ${copied.join(', ')}` : ''),
+          (copied.length ? ` · 已同步 ${copied.join(', ')}` : '') +
+          (deployHint ? ` · ${deployHint}` : ''),
         { timestamp: true }
       );
     }
