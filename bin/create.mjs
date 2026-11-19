@@ -28,6 +28,9 @@ const SKIP_FILES = new Set([
 
 const REWRITABLE = new Set(["package.json", "project.json", "README.md"]);
 
+/** 模板自带的 .gitignore 在 npm 打包时会被丢掉, 生成项目时用它兜底 */
+const FALLBACK_GITIGNORE = ["node_modules/", "dist/", ".tmp/", "*.log", ".DS_Store", ""].join("\n");
+
 const USAGE = `
 创建一个新的 AutoJs6 脚本项目
 
@@ -105,6 +108,7 @@ if (fs.existsSync(dest)) {
 
 const copied = [];
 copyTree(TEMPLATE, dest);
+ensureGitignore(dest);
 
 if (flags.install) {
   const npm = process.platform === "win32" ? "npm.cmd" : "npm";
@@ -142,6 +146,21 @@ function fail(message) {
   process.exit(1);
 }
 
+/**
+ * 补一份 .gitignore.
+ *
+ * 模板目录里带 .gitignore, 但 npm 打包时会把它排除在包外,
+ * 所以安装后生成的项目可能没有这个文件, 这里兜底写一份.
+ */
+function ensureGitignore(dir) {
+  const file = path.join(dir, ".gitignore");
+  if (fs.existsSync(file)) {
+    return;
+  }
+  fs.writeFileSync(file, FALLBACK_GITIGNORE);
+  copied.push(".gitignore");
+}
+
 function toPackageName(raw) {
   return String(raw)
     .trim()
@@ -164,10 +183,8 @@ function copyTree(fromDir, toDir, rel = "") {
 
   for (const entry of fs.readdirSync(fromDir, { withFileTypes: true })) {
     const relPath = rel ? `${rel}/${entry.name}` : entry.name;
-    // npm 打包时会丢掉 .gitignore, 模板里用 _gitignore 存一份, 生成时改回名字
-    const targetName = entry.name === "_gitignore" ? ".gitignore" : entry.name;
     const from = path.join(fromDir, entry.name);
-    const to = path.join(toDir, targetName);
+    const to = path.join(toDir, entry.name);
 
     if (entry.isDirectory()) {
       if (SKIP_DIRS.has(entry.name)) continue;
@@ -182,7 +199,7 @@ function copyTree(fromDir, toDir, rel = "") {
     } else {
       fs.copyFileSync(from, to);
     }
-    copied.push(targetName === entry.name ? relPath : targetName);
+    copied.push(relPath);
   }
 }
 
